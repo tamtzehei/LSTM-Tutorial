@@ -10,6 +10,7 @@ import numpy
 import matplotlib.pyplot as plt
 
 from keras.models import Sequential
+from keras.models import load_model
 from keras.layers import Dense
 from keras.layers import LSTM
 
@@ -46,12 +47,28 @@ def create_dataset(dataset, lookback = 1):
 train_old, train_new = create_dataset(train_set)      
 test_old, test_new = create_dataset(test_set)
 
-train_old = numpy.reshape(train_old, (train_old.shape[0], 1, train_old.shape[1]))
+#Format input data to be the shape LSTM wants
+train_old = numpy.reshape(train_old, (train_old.shape[0], 1, 1))
+test_old = numpy.reshape(test_old, (test_old.shape[0], 1, 1))
 
 def create_model():
     model = Sequential()
     
-    model
+    model.add(LSTM(4, input_shape = (1, 1)))
+    model.add(Dense(1))
+    
+    model.compile(loss = 'mean_squared_error', optimizer = 'adam')
+    
+    model.fit(train_old, train_new, epochs = 100, batch_size = 1)
+    
+    model.save('LSTMVer1.h5')
+    
     return model
     
-    
+#create_model()
+
+finished_model = load_model('LSTMVer1.h5')
+
+predictions = finished_model.predict(test_old)
+
+score = finished_model.evaluate(test_old, test_new, batch_size = 1)
